@@ -1,0 +1,4 @@
+/site-packages
+/lib/creds.py
+__pycache__
+*.csv
