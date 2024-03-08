@@ -1,0 +1,73 @@
+diff --git a/index.html b/index.html
+index a35bfb4..ee8ad79 100644
+--- a/index.html
++++ b/index.html
+@@ -6,6 +6,6 @@
+         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+         <meta name="viewport" content="user-scalable=no">
+-        <link rel="icon" href="icon/icon.png" type="image/png">
+-        <link rel="apple-touch-icon" href="icon/icon.png">
++        <link rel="icon" href="icon/icon.webp" type="image/webp">
++        <link rel="apple-touch-icon" href="icon/icon.webp">
+         <link rel="stylesheet" type="text/css" href="fonts/gamefont.css">
+         <link rel="stylesheet" type="text/css" href="css/TTX_set.css">
+diff --git a/js/rpg_core.js b/js/rpg_core.js
+index fd42402..7648d67 100644
+--- a/js/rpg_core.js
++++ b/js/rpg_core.js
+@@ -9157,7 +9157,7 @@ Decrypter._headerlength = 16;
+ Decrypter._xhrOk = 400;
+ Decrypter._encryptionKey = "";
+ Decrypter._ignoreList = [
+-    "img/system/Window.png"
++    "img/system/Window.webp"
+ ];
+ Decrypter.SIGNATURE = "5250474d56000000";
+ Decrypter.VER = "000301";
+@@ -9318,4 +9318,4 @@ ResourceHandler.retry = function() {
+         });
+         this._reloaders.length = 0;
+     }
+-};
+\ No newline at end of file
++};
+diff --git a/js/rpg_managers.js b/js/rpg_managers.js
+index 49f61a9..39e7efe 100644
+--- a/js/rpg_managers.js
++++ b/js/rpg_managers.js
+@@ -858,7 +858,7 @@ ImageManager.loadTitle2 = function(filename, hue) {
+ 
+ ImageManager.loadBitmap = function(folder, filename, hue, smooth) {
+     if (filename) {
+-        var path = folder + encodeURIComponent(filename) + '.png';
++        var path = folder + encodeURIComponent(filename) + '.webp';
+         var bitmap = this.loadNormalBitmap(path, hue || 0);
+         bitmap.smooth = smooth;
+         return bitmap;
+@@ -975,7 +975,7 @@ ImageManager.reserveTitle2 = function(filename, hue, reservationId) {
+ 
+ ImageManager.reserveBitmap = function(folder, filename, hue, smooth, reservationId) {
+     if (filename) {
+-        var path = folder + encodeURIComponent(filename) + '.png';
++        var path = folder + encodeURIComponent(filename) + '.webp';
+         var bitmap = this.reserveNormalBitmap(path, hue || 0, reservationId || this._defaultReservationId);
+         bitmap.smooth = smooth;
+         return bitmap;
+@@ -1058,7 +1058,7 @@ ImageManager.requestTitle2 = function(filename, hue) {
+ 
+ ImageManager.requestBitmap = function(folder, filename, hue, smooth) {
+     if (filename) {
+-        var path = folder + encodeURIComponent(filename) + '.png';
++        var path = folder + encodeURIComponent(filename) + '.webp';
+         var bitmap = this.requestNormalBitmap(path, hue || 0);
+         bitmap.smooth = smooth;
+         return bitmap;
+@@ -1822,7 +1822,7 @@ SceneManager.initGraphics = function() {
+     Graphics.initialize(this._screenWidth, this._screenHeight, type);
+     Graphics.boxWidth = this._boxWidth;
+     Graphics.boxHeight = this._boxHeight;
+-    Graphics.setLoadingImage('img/system/Loading.png');
++    Graphics.setLoadingImage('img/system/Loading.webp');
+     if (Utils.isOptionValid('showfps')) {
+         Graphics.showFps();
+     }
