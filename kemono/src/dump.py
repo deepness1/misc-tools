@@ -2,7 +2,6 @@ import sys
 
 import strlib
 
-import download
 import kemono
 
 
