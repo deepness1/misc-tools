@@ -51,6 +51,7 @@ def append_downloaded_works(recorddir, work_id):
         print("bug: attempt to append duplicated work")
         return
     current.append(work_id)
+    os.makedirs(recorddir, exist_ok=True)
     downloaded_path = os.path.join(recorddir, "downloaded")
     file = open(downloaded_path, "w")
     for w in current:
