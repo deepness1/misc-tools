@@ -3,6 +3,7 @@ import os
 import json
 import urllib
 import calendar
+import json
 
 from bs4 import BeautifulSoup
 import fetch
@@ -61,20 +62,81 @@ class FileContent:
             open(path, "wb").write(session.request(self.url).content)
 
 
-def parse_content(json):
-    title = json["title"] if json["title"] != None else "1"
-    match json["category"]:
+class BlogContent:
+    def __init__(self, title, ops):
+        self.title = title
+        self.ops = ops
+
+    def reset_dump_state(self):
+        self.bold = False
+        self.textsize = None
+
+    def handle_insert(self, file, value):
+        if self.textsize:
+            match self.textsize:
+                case "huge":
+                    file.write("# ")
+                case "large":
+                    file.write("## ")
+                case _:
+                    print("unimplemented font size:", self.textsize)
+                    exit(1)
+        if self.bold:
+            file.write("**")
+        file.write(value)
+        if self.bold:
+            file.write("**")
+        file.write("\n")
+
+        self.reset_dump_state()
+
+    def handle_attr(self, key, value):
+        match key:
+            case "bold":
+                if not isinstance(value, bool):
+                    print("bold type must be bool")
+                    exit(1)
+                self.bold = value
+            case "size":
+                self.textsize = value
+            case "_":
+                print("unimplemented blog attribute:", key)
+                exit(1)
+
+    def handle_op(self, file, key, value):
+        match key:
+            case "insert":
+                self.handle_insert(file, value)
+            case "attributes":
+                for attr, flag in value.items():
+                    self.handle_attr(attr, flag)
+
+    def download(self, session, postdir):
+        path = os.path.join(postdir, self.title) + ".txt"
+        file = open(path, "wt")
+        self.reset_dump_state()
+        for op in self.ops:
+            for key, value in op.items():
+                self.handle_op(file, key, value)
+
+
+def parse_content(content):
+    title = content["title"] if content["title"] != None else "1"
+    match content["category"]:
         case "photo_gallery":
             photos = []
-            gallery = json["post_content_photos"]
+            gallery = content["post_content_photos"]
             for photo in gallery:
                 url = photo["url"]["original"]
                 photos.append(url)
             return PhotoGalleryContent(title, photos)
         case "file":
-            filename = json["filename"]
-            url = origin + json["download_uri"]
+            filename = content["filename"]
+            url = origin + content["download_uri"]
             return FileContent(filename, url)
+        case "blog":
+            comment = json.loads(content["comment"])
+            return BlogContent(title, comment["ops"])
         case _:
             print("warn: content type", content["category"], "is not implemented")
 
