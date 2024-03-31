@@ -21,7 +21,6 @@ class Session:
         self.session = fetch.Session()
         self.session.headers = {
             "accept": "application/json, text/plain, */*",
-            "accept-encoding": "gzip, deflate, br",
             "accept-language": "ja,en-US;q=0.9,en;q=0.8",
             "origin": origin,
             "referer": origin,

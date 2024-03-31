@@ -14,7 +14,6 @@ class Session:
         self.session = fetch.Session()
         self.session.headers = {
             "accept": "application/json, text/plain, */*",
-            "accept-encoding": "gzip, deflate, br",
             "accept-language": "ja,en-US;q=0.9,en;q=0.8",
             "origin": "https://www.fanbox.cc",
             "referer": "https://www.fanbox.cc/",
@@ -95,6 +94,7 @@ def list_posts(creator_id):
         nonlocal session
         url = origin + "/post.paginateCreator"
         payload = {"creatorId": creator_id}
+
         return session.request(url, params=payload).json()
 
     def query_parse(url):
