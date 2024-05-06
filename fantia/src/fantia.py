@@ -98,7 +98,7 @@ class BlogContent:
                 self.bold = value
             case "size":
                 self.textsize = value
-            case "_":
+            case _:
                 print("unimplemented blog attribute:", key)
                 exit(1)
 
