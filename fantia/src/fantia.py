@@ -91,12 +91,11 @@ class BlogContent:
     def handle_insert_dict(self, value):
         image = value["fantiaImage"]
         url = image["url"]
-        ext = ".jpg" # FIXME: always jpeg?
+        ext = ".jpg"  # FIXME: always jpeg?
         path = os.path.join(self.postdir, f"{self.file_count:03}" + ext)
         self.file_count += 1
         if not os.path.exists(path):
             open(path, "wb").write(self.session.request(url).content)
-
 
     def handle_insert(self, value):
         if isinstance(value, str):
@@ -116,6 +115,10 @@ class BlogContent:
                 self.bold = value
             case "size":
                 self.textsize = value
+            case "link":
+                self.info.write(f"[link]({value})\n")
+            case "color":
+                pass
             case _:
                 print("unimplemented blog attribute:", key)
                 exit(1)
