@@ -63,31 +63,49 @@ class FileContent:
 
 class BlogContent:
     def __init__(self, title, ops):
-        self.title = title
         self.ops = ops
 
     def reset_dump_state(self):
         self.bold = False
         self.textsize = None
 
-    def handle_insert(self, file, value):
+    def handle_insert_str(self, value):
         if self.textsize:
             match self.textsize:
                 case "huge":
-                    file.write("# ")
+                    self.info.write("# ")
                 case "large":
-                    file.write("## ")
+                    self.info.write("## ")
                 case _:
                     print("unimplemented font size:", self.textsize)
                     exit(1)
         if self.bold:
-            file.write("**")
-        file.write(value)
+            self.info.write("**")
+        self.info.write(value)
         if self.bold:
-            file.write("**")
-        file.write("\n")
+            self.info.write("**")
+        self.info.write("\n")
 
         self.reset_dump_state()
+
+    def handle_insert_dict(self, value):
+        image = value["fantiaImage"]
+        url = image["url"]
+        ext = ".jpg" # FIXME: always jpeg?
+        path = os.path.join(self.postdir, f"{self.file_count:03}" + ext)
+        self.file_count += 1
+        if not os.path.exists(path):
+            open(path, "wb").write(self.session.request(url).content)
+
+
+    def handle_insert(self, value):
+        if isinstance(value, str):
+            return self.handle_insert_str(value)
+        elif isinstance(value, dict):
+            return self.handle_insert_dict(value)
+        else:
+            print("unimplemented insert type: ", type(value))
+            exit(1)
 
     def handle_attr(self, key, value):
         match key:
@@ -102,21 +120,27 @@ class BlogContent:
                 print("unimplemented blog attribute:", key)
                 exit(1)
 
-    def handle_op(self, file, key, value):
+    def handle_op(self, key, value):
         match key:
             case "insert":
-                self.handle_insert(file, value)
+                self.handle_insert(value)
             case "attributes":
                 for attr, flag in value.items():
                     self.handle_attr(attr, flag)
 
     def download(self, session, postdir):
-        path = os.path.join(postdir, self.title) + ".txt"
-        file = open(path, "wt")
+        info_path = os.path.join(postdir, "info.txt")
+        self.session = session
+        self.postdir = postdir
+        self.info = open(info_path, "wt")
+        self.file_count = 1
         self.reset_dump_state()
+
         for op in self.ops:
             for key, value in op.items():
-                self.handle_op(file, key, value)
+                self.handle_op(key, value)
+
+        self.info.close()
 
 
 def parse_content(content):
