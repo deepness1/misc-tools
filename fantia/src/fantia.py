@@ -233,11 +233,7 @@ def list_posts(fanclub):
 
 def post_to_dirname(post):
     title = strlib.canonicalize_filename(post.title)
-    meta_size = len(f"{post.date[:10]}  {post.id}".encode(encoding="utf-8"))
-    title_size = len(title.encode(encoding="utf-8"))
-    if meta_size + title_size > 255:
-        title = strlib.truncate_by_concating(title, 255 - meta_size)[:-3] + "..."
-    return f"{post.date[:10]} {title} {post.id}"
+    return strlib.build_dirname_from_parts(post.date[:10], title, post.id)
 
 
 def dump_post(post, basedir):

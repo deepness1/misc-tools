@@ -16,13 +16,7 @@ class APIs:
 
 def build_dirname(module, work):
     title = strlib.canonicalize_filename(work.title)
-    date = work.create_date[:10]
-    dirname = f"{date} {title} {work.id}"
-    if len(dirname.encode(encoding="utf-8")) > 255:
-        reserved = f"{date} ... {work.id}".encode(encoding="utf-8")
-        trtitle = strlib.truncate_by_concating(title, 255 - len(reserved)) + "..."
-        dirname = f"{date} {trtitle} {work.id}"
-    return dirname
+    return strlib.build_dirname_from_parts(work.create_date[:10], title, work.id)
 
 
 def dump_work(apis, module, work, savedir):

@@ -139,11 +139,7 @@ def download(url, path):
 
 def post_to_dirname(post):
     title = strlib.canonicalize_filename(post.title)
-    meta_size = len(f"{post.date[:10]}  {post.pid}".encode(encoding="utf-8"))
-    title_size = len(title.encode(encoding="utf-8"))
-    if meta_size + title_size > 255:
-        title = strlib.truncate_by_concating(title, 255 - meta_size)[:-3] + "..."
-    return f"{post.date[:10]} {title} {post.pid}"
+    return strlib.build_dirname_from_parts(post.date[:10], title, post.pid)
 
 
 def is_downloadable_link(link):

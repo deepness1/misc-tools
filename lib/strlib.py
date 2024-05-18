@@ -26,6 +26,18 @@ def truncate_by_concating(s, max_bytes):
     return res
 
 
+def build_dirname_from_parts(prefix, body, suffix):
+    if len(body) == 0:
+        return f"{prefix} {suffix}"
+
+    meta_size = len(f"{prefix}  {suffix}".encode(encoding="utf-8"))
+    body_size = len(body.encode(encoding="utf-8"))
+
+    if meta_size + body_size > 255:
+        body = truncate_by_concating(body, 255 - meta_size - 3) + "..."
+    return f"{prefix} {body} {suffix}"
+
+
 def canonicalize_filename(s):
     return s.replace("/", "／")
 
