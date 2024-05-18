@@ -1,7 +1,8 @@
 #!/bin/zsh
 
 dir="${0:a:h}"
-tmux neww -d "source env && cd '$dir/fanbox' && ./update.sh"
-tmux neww -d "source env && cd '$dir/fantia' && ./update.sh"
-tmux neww -d "source env && cd '$dir/kemono' && ./update.sh"
-tmux neww -d "source env && cd '$dir/pixiv' && ./update.sh"
+tmux neww -a -d "source env && cd '$dir/fanbox'  && ./update.sh || read"
+tmux neww -a -d "source env && cd '$dir/fantia'  && ./update.sh || read"
+tmux neww -a -d "source env && cd '$dir/kemono'  && ./update.sh || read"
+tmux neww -a -d "source env && cd '$dir/pixiv'   && ./update.sh || read"
+tmux neww -a -d "source env && cd '$dir/twitter' && ./update.sh || read"
