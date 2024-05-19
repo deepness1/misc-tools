@@ -94,17 +94,6 @@ def wait_until_rate_unlimit(limits):
     time.sleep(duration)
 
 
-def json_to_posts(json):
-    posts = []
-    for tweet in find_key(json, "tweet_results"):
-        result = tweet.get("result")
-        if not result:
-            print("unexpected tweet_result")
-            exit(1)
-        posts.append(Post(result))
-    return posts
-
-
 def complete_missing_reply_parents(scraper, posts):
     posts.sort(key=lambda post: int(post.post_id))
 
@@ -162,7 +151,9 @@ def list_posts(scraper, user_id, post_id_min):
 
         cursor = get_cursor(json)
 
-        new_posts = json_to_posts(json)
+        new_posts = []
+        for tweet in find_key(json, "tweet_results"):
+            new_posts.append(Post(tweet["result"]))
         if len(new_posts) == 0:
             break
         posts += new_posts
