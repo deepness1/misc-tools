@@ -88,7 +88,8 @@ class Post:
             self.full_text = self.full_text.replace(short_url, full_url)
 
 
-def wait_until_rate_unlimit(limits):
+def wait_until_rate_unlimit(scraper, operation):
+    limits = scraper.rate_limits[operation[2]]
     duration = int(limits["x-rate-limit-reset"] - time.time()) + 1
     print(f"resuming in {duration} secs...")
     time.sleep(duration)
@@ -124,7 +125,7 @@ def complete_missing_reply_parents(scraper, posts):
     for batch in batches:
         data = newscraper.get_tweets(scraper, cursor, batch)
         if not data or data.status_code != 200:
-            wait_until_rate_unlimit(scraper.rate_limits["TweetResultsByRestIds"])
+            wait_until_rate_unlimit(scraper, Operation.TweetResultsByRestIds)
             continue
         json = data.json()
         for tweet in json["data"]["tweetResult"]:
@@ -145,7 +146,7 @@ def list_posts(scraper, user_id, post_id_min):
     while True:
         data = newscraper.get_user_tweets(scraper, cursor, user_id)
         if not data or data.status_code != 200:
-            wait_until_rate_unlimit(scraper.rate_limits["UserTweets"])
+            wait_until_rate_unlimit(scraper, Operation.UserTweets)
             continue
         json = data.json()
 
