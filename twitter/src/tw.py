@@ -38,11 +38,12 @@ def convert_calender(text):
 
 class Post:
     def __init__(self, tweet):
-        self.post_id = tweet["rest_id"]
+        self.post_id = int(tweet["rest_id"])
         legacy = tweet["legacy"]
         self.full_text = html.unescape(legacy["full_text"])
         self.date = convert_calender(legacy["created_at"])
-        self.reply_of = legacy.get("in_reply_to_status_id_str")
+        reply_str = legacy.get("in_reply_to_status_id_str")
+        self.reply_of = int(reply_str) if reply_str else None
 
         self.photos = []
         self.videos = []
@@ -103,12 +104,12 @@ def complete_missing_reply_parents(scraper, posts):
         if not post.reply_of:
             continue
 
-        parent_post = posts.get(int(post.reply_of))
+        parent_post = posts.get(post.reply_of)
         if parent_post:
             continue
 
         print(post.reply_of, " parent post missing")
-        post_ids.add(int(post.reply_of))
+        post_ids.add(post.reply_of)
 
     if len(post_ids) == 0:
         return posts
@@ -126,7 +127,7 @@ def complete_missing_reply_parents(scraper, posts):
         for tweet in json["data"]["tweetResult"]:
             result = tweet.get("result")
             post = Post(result)
-            posts[int(post.post_id)] = post
+            posts[post.post_id] = post
 
     if prev_posts_size != len(posts):
         # collected posts may also refer to missing posts
@@ -153,11 +154,10 @@ def list_posts(scraper, user_id, post_id_min):
             break
         for tweet in results:
             post = Post(tweet["result"])
-            key = int(post.post_id)
-            if key <= post_id_min:
+            if post.post_id <= post_id_min:
                 post_id_min_reached = True
                 break
-            posts[key] = post
+            posts[post.post_id] = post
 
         if post_id_min_reached:
             break
@@ -183,7 +183,7 @@ def dump_post(post, basedir):
         open(filepath, "wt").write(post.full_text)
     if post.reply_of:
         filepath = os.path.join(postdir, "reply-of.txt")
-        open(filepath, "wt").write(post.reply_of)
+        open(filepath, "wt").write(str(post.reply_of))
 
     for i in range(len(post.photos)):
         url = post.photos[i]

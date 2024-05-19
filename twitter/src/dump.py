@@ -22,13 +22,13 @@ def construct_reply_tree(posts):
             continue
         print(post.post_id, "is reply of ", post.reply_of)
 
-        parent_post = posts.get(int(post.reply_of))
+        parent_post = posts.get(post.reply_of)
         if not parent_post:
             print("parent post missing, skipping:", post.post_id)
             continue
         print(parent_post.post_id, "is parent")
 
-        parent_post.replies.append(int(post_id))
+        parent_post.replies.append(post_id)
 
 
 def merge_replies(posts, post):
@@ -61,19 +61,18 @@ def update_user(user_id, savedir, recorddir, merge_reply):
     append_post_fields(posts)
     if merge_reply:
         construct_reply_tree(posts)
-    posts_list = sorted(list(posts.values()), key=lambda post: int(post.post_id))
+    posts_list = sorted(list(posts.values()), key=lambda post: post.post_id)
     for post in posts_list:
-        if post.post_id in downloaded:
+        if str(post.post_id) in downloaded:
             continue
         if post.merged:
-            strlib.append_downloaded_works(recorddir, post.post_id)
+            strlib.append_downloaded_works(recorddir, str(post.post_id))
             continue
 
         print("*", post.date, post.full_text[:20].replace("\n", ""))
         merge_replies(posts, post)
         tw.dump_post(post, savedir)
-        continue
-        strlib.append_downloaded_works(recorddir, post.post_id)
+        strlib.append_downloaded_works(recorddir, str(post.post_id))
 
 
 if len(sys.argv) != 4:
