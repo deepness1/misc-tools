@@ -3,6 +3,7 @@ import os
 import calendar
 import re
 import time
+import html
 from urllib.parse import urlparse
 
 import strlib
@@ -39,7 +40,7 @@ class Post:
     def __init__(self, tweet):
         self.post_id = tweet["rest_id"]
         legacy = tweet["legacy"]
-        self.full_text = legacy["full_text"]
+        self.full_text = html.unescape(legacy["full_text"])
         self.date = convert_calender(legacy["created_at"])
         self.reply_of = legacy.get("in_reply_to_status_id_str")
 
@@ -96,24 +97,18 @@ def wait_until_rate_unlimit(scraper, operation):
 
 
 def complete_missing_reply_parents(scraper, posts):
-    posts.sort(key=lambda post: int(post.post_id))
-
     # collect missing posts
     post_ids = set()
-    for i in range(len(posts) - 1, -1, -1):
-        if not posts[i].reply_of:
+    for post_id, post in posts.items():
+        if not post.reply_of:
             continue
 
-        parent_post = None
-        for j in range(i - 1, -1, -1):
-            if posts[i].reply_of == posts[j].post_id:
-                parent_post = posts[j]
-                break
+        parent_post = posts.get(int(post.reply_of))
         if parent_post:
             continue
 
-        print(posts[i].reply_of, " parent post missing")
-        post_ids.add(int(posts[i].reply_of))
+        print(post.reply_of, " parent post missing")
+        post_ids.add(int(post.reply_of))
 
     if len(post_ids) == 0:
         return posts
@@ -130,7 +125,8 @@ def complete_missing_reply_parents(scraper, posts):
         json = data.json()
         for tweet in json["data"]["tweetResult"]:
             result = tweet.get("result")
-            posts.append(Post(result))
+            post = Post(result)
+            posts[int(post.post_id)] = post
 
     if prev_posts_size != len(posts):
         # collected posts may also refer to missing posts
@@ -139,9 +135,8 @@ def complete_missing_reply_parents(scraper, posts):
     return posts
 
 
-# returned posts are ascending ordered
 def list_posts(scraper, user_id, post_id_min):
-    posts = []
+    posts = {}
     cursor = None
     while True:
         data = newscraper.get_user_tweets(scraper, cursor, user_id)
@@ -152,15 +147,19 @@ def list_posts(scraper, user_id, post_id_min):
 
         cursor = get_cursor(json)
 
-        new_posts = []
-        for tweet in find_key(json, "tweet_results"):
-            new_posts.append(Post(tweet["result"]))
-        if len(new_posts) == 0:
+        post_id_min_reached = False
+        results = find_key(json, "tweet_results")
+        if len(results) == 0:
             break
-        posts += new_posts
+        for tweet in results:
+            post = Post(tweet["result"])
+            key = int(post.post_id)
+            if key <= post_id_min:
+                post_id_min_reached = True
+                break
+            posts[key] = post
 
-        if int(posts[-1].post_id) <= post_id_min:
-            posts = [post for post in posts if int(post.post_id) > post_id_min]
+        if post_id_min_reached:
             break
 
     return complete_missing_reply_parents(scraper, posts)
