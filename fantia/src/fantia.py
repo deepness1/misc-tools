@@ -146,6 +146,16 @@ class BlogContent:
         self.info.close()
 
 
+class TextContent:
+    def __init__(self, title, comment):
+        self.title = title
+        self.comment = comment
+
+    def download(self, session, postdir):
+        info_path = os.path.join(postdir, self.title + ".txt")
+        open(info_path, "wt").write(self.comment)
+
+
 def parse_content(content):
     title = content["title"] if content["title"] != None else "1"
     match content["category"]:
@@ -163,8 +173,11 @@ def parse_content(content):
         case "blog":
             comment = json.loads(content["comment"])
             return BlogContent(title, comment["ops"])
+        case "text":
+            return TextContent(title, content["comment"])
         case _:
             print("warn: content type", content["category"], "is not implemented")
+            exit(1)
 
 
 def get_csrf_token(session, post_id):
