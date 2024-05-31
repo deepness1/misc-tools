@@ -63,6 +63,7 @@ class FileContent:
 
 class BlogContent:
     def __init__(self, title, ops):
+        self.title = title
         self.ops = ops
 
     def reset_dump_state(self):
@@ -132,7 +133,7 @@ class BlogContent:
                     self.handle_attr(attr, flag)
 
     def download(self, session, postdir):
-        info_path = os.path.join(postdir, "info.txt")
+        info_path = os.path.join(postdir, self.title + ".txt")
         self.session = session
         self.postdir = postdir
         self.info = open(info_path, "wt")
