@@ -40,7 +40,7 @@ def dump_ugoira_as_movie(apis, work, basedir):
         for frame in ugoira.frames:
             frame_number = int(frame.file.rsplit(".", 1)[0])
             frame_url = f"{url[0]}{frame_number}{url[1]}"
-            aapi.download(frame_url, "", tmpdir, frame.file)
+            apis.aapi.download(frame_url, "", tmpdir, frame.file)
             files.write(f"file '{frame.file}'\n")
             files.write(f"duration 0.0{frame.delay}\n")
         files.write(f"file '{ugoira.frames[-1].file}'\n")
