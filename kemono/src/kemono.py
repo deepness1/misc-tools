@@ -59,7 +59,7 @@ class Post:
                     for e in p:
                         text = str(e.string).strip()
                         match e.name:
-                            case None | "strong" | "span" | "pre":
+                            case None | "strong" | "span" | "pre" | "em":
                                 self.description += text
                             case "a":
                                 link = make_abs_link(e["href"])
