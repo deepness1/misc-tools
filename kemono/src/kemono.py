@@ -1,6 +1,7 @@
 import os
 import sys
 import threading
+import urllib
 
 from bs4 import BeautifulSoup
 import strlib
@@ -143,15 +144,8 @@ def post_to_dirname(post):
 
 
 def is_downloadable_link(link):
-    if link.startswith(origin):
-        return True
-
-    for i in range(1, 10):
-        domain = f"https://c{i}.kemono.su"
-        if link.startswith(domain):
-            return True
-
-    return False
+    hostname = urllib.parse.urlparse(link).hostname
+    return hostname.endswith("kemono.su")
 
 
 def save_post(post, path):
