@@ -113,7 +113,7 @@ def list_posts(creator_id):
     posts = []
     for i in range(len(paginate["body"])):
         param = query_parse(paginate["body"][i])
-        for p in get_list_creator(**param)["body"]["items"]:
+        for p in get_list_creator(**param)["body"]:
             posts.append(p["id"])
 
     return posts
