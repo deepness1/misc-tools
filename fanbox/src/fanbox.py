@@ -135,10 +135,14 @@ def dump_post(post, basedir):
         if ext == ".jpeg":
             ext = ".jpg"
         filepath = os.path.join(path, f"{i:03}{ext}")
+        if os.path.exists(filepath):
+            continue
         open(filepath, "wb").write(post.download(url).content)
 
     for file in post.files:
         filepath = os.path.join(path, file["name"])
+        if os.path.exists(filepath):
+            continue
         open(filepath, "wb").write(post.download(file["url"]).content)
 
 
