@@ -137,13 +137,15 @@ def dump_post(post, basedir):
         filepath = os.path.join(path, f"{i:03}{ext}")
         if os.path.exists(filepath):
             continue
-        open(filepath, "wb").write(post.download(url).content)
+        file = post.download(url).content
+        open(filepath, "wb").write(file)
 
     for file in post.files:
         filepath = os.path.join(path, file["name"])
         if os.path.exists(filepath):
             continue
-        open(filepath, "wb").write(post.download(file["url"]).content)
+        file = post.download(file["url"]).content
+        open(filepath, "wb").write(file)
 
 
 def main():
