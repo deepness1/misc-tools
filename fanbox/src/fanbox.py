@@ -141,9 +141,9 @@ def dump_post(post, basedir):
 
 def main():
     for n in sys.argv[1:-1]:
-        post = fanbox.Post(n)
+        post = Post(n)
         print("*", post.title)
-        fanbox.dump_post(post, sys.argv[-1])
+        dump_post(post, sys.argv[-1])
 
 
 if __name__ == "__main__":
