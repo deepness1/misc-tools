@@ -45,7 +45,10 @@ class Post:
 
         body = data["body"]
         if body == None:
+            self.visible = False
             return
+        else:
+            self.visible = True
         if "blocks" in body:
             for b in body["blocks"]:
                 match b["type"]:
@@ -142,6 +145,8 @@ def dump_post(post, basedir):
 def main():
     for n in sys.argv[1:-1]:
         post = Post(n)
+        if not post.visible:
+            continue
         print("*", post.title)
         dump_post(post, sys.argv[-1])
 

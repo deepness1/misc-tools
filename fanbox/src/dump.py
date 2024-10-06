@@ -12,7 +12,7 @@ def update_user(cid, savedir, recorddir):
             continue
 
         post = fanbox.Post(post_id)
-        if post.title == None:
+        if not post.visible:
             continue
         print("*", post.title)
         fanbox.dump_post(post, savedir)
