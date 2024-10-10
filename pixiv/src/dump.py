@@ -21,7 +21,7 @@ def update_user(apis, module, uid, whitelist_tags, blacklist_tags, savedir, reco
     for work in module.list_works(apis, uid):
         if str(work.id) in downloaded:
             continue
-        if not check_tag(whitelist_tags, blacklist_tags, work.tags):
+        if not check_tag(whitelist_tags, blacklist_tags, [tag.name for tag in work.tags]):
             continue
 
         print("*", work.title)
