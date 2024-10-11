@@ -62,15 +62,16 @@ class Post:
             match media["type"]:
                 case "photo":
                     self.photos.append(media["media_url_https"] + "?name=orig")
-                case "video":
+                case "video" | "animated_gif":
                     url = None
-                    max_bitrate = 0
+                    max_bitrate = -1
                     for v in media["video_info"]["variants"]:
                         bitrate = v.get("bitrate")
-                        if not bitrate:
+                        if bitrate == None:
                             continue
                         if bitrate > max_bitrate:
                             url = v["url"]
+                            max_bitrate = bitrate
                     if not url:
                         print("no url available in video")
                         exit(1)
