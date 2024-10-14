@@ -153,7 +153,7 @@ class TextContent:
         self.comment = comment
 
     def download(self, session, postdir):
-        info_path = os.path.join(postdir, self.title + ".txt")
+        info_path = os.path.join(postdir, self.title.replace('/', ',') + ".txt")
         open(info_path, "wt").write(self.comment)
 
 
