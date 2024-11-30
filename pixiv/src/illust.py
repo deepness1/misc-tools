@@ -2,6 +2,8 @@ import os
 import subprocess
 import shutil
 
+import pixivpy3 as ppy
+
 import retry
 
 
@@ -10,7 +12,10 @@ def paginate(apis, uid, category):
 
     def update_json(**kwargs):
         nonlocal json
-        json = apis.aapi.user_illusts(**kwargs)
+        try:
+            json = apis.aapi.user_illusts(**kwargs)
+        except ppy.utils.PixivError:
+            return False
         return json.illusts != None
 
     retry.until_success(update_json, user_id=uid, type=category)
