@@ -86,8 +86,10 @@ class Post:
 
     def parse_urls(self, urls):
         for node in urls:
+            full_url = node.get("expanded_url")
+            if not full_url:
+                continue
             short_url = node["url"]
-            full_url = node["expanded_url"]
             self.full_text = self.full_text.replace(short_url, full_url)
 
 
