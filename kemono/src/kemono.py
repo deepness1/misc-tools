@@ -45,11 +45,11 @@ class Post:
         if "path" in rev["file"]:
             file = rev["file"]
             url = build_full_url(file["path"])
-            if not self.has_file(url):
+            if self.find_file(url) == None:
                 self.files.append([url, file["name"]])
         for file in rev["attachments"]:
             url = build_full_url(file["path"])
-            if not self.has_file(url):
+            if self.find_file(url) == None:
                 self.files.append([url, file["name"]])
 
         bs = BeautifulSoup(rev["content"], "html.parser")
@@ -80,10 +80,10 @@ class Post:
                         string += "\n"
                     case "img":
                         link = build_full_url(e["src"])
-                        if self.has_file(link):
-                            self.attachments.append([link, None])
+                        if self.find_file(link) == None:
+                            self.files.append([link, None])
                         ext = os.path.splitext(link)[1]
-                        index = self.files.index(link)
+                        index = self.find_file(link)
                         string += f"[img]({index:03}{ext})"
                     case _:
                         print("error: unknown element name")
@@ -92,11 +92,11 @@ class Post:
             string += "\n"
         return string
 
-    def has_file(self, url):
-        for file in self.files:
-            if file[0] == url:
-                return True
-        return False
+    def find_file(self, url):
+        for i in range(len(self.files)):
+            if self.files[i][0] == url:
+                return i
+        return None
 
 
 def list_post_urls(site, uid):
