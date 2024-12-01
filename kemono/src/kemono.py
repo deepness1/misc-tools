@@ -73,6 +73,10 @@ class Post:
                 match e.name:
                     case None | "strong" | "span" | "pre" | "em":
                         string += text
+                    case "i":
+                        string += f"_{text}_"
+                    case "b":
+                        string += f"__{text}__"
                     case "a":
                         link = build_full_url(e["href"])
                         string += f"[{text}]({link})"
