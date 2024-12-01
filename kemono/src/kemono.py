@@ -14,7 +14,7 @@ origin = "https://kemono.su"
 
 
 def build_full_url(path):
-    if path.startswith("https://"):
+    if path.startswith("https://") or path.startswith("http://"):
         return path
     else:
         return origin + path
