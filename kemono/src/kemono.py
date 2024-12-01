@@ -128,7 +128,7 @@ def download(url, path):
     except fetch.requests.exceptions.ChunkedEncodingError as e:
         res = None
     if res == None:
-        print("request failed")
+        print("request failed: ", url)
         return False
     open(path, "wb").write(res.content)
     return True
@@ -163,8 +163,6 @@ def save_post(post, path):
         text = f"[{description}]({url})"
         open(postdir + f"/{subject}.txt", mode="w").write(text)
 
-    failed = False
-
     def download_file(post, i):
         link, name = post.files[i]
         print(i + 1, "/", len(post.files), link)
@@ -179,25 +177,26 @@ def save_post(post, path):
             print("warn: unhandled link type, saving url")
             savepath += ".txt"
             open(savepath, "w").write(link)
-            return
+            return True
 
         ext = os.path.splitext(link)[1]
         if ext == ".jpe" or ext == ".jpeg":
             ext = ".jpg"
         savepath += ext
         if os.path.exists(savepath):
-            return
-        if not download(link, savepath):
-            failed = True
+            return True
+        return download(link, savepath)
 
     job_index = atomic.AtomicInt()
+
+    failed = False
 
     def worker_main():
         nonlocal failed
 
         i = job_index.fetch_add()
         while i < len(post.files):
-            download_file(post, i)
+            failed |= download_file(post, i)
             i = job_index.fetch_add()
 
     workers = []
