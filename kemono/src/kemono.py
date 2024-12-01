@@ -107,9 +107,14 @@ def list_post_urls(site, uid):
     url = f"{origin}/api/v1/{site}/user/{uid}"
     result = []
 
-    res = fetch.request(url)
-    arr = json.loads(res.text)
-    return [post["id"] for post in arr]
+    o = 0
+    while True:
+        res = fetch.request(url + f"?o={o}")
+        arr = json.loads(res.text)
+        if len(arr) == 0:
+            return result
+        result += [post["id"] for post in arr]
+        o += 50
 
 
 def download(url, path):
