@@ -34,7 +34,7 @@ class Post:
         #         rev = r
         rev = root["post"]
         self.title = rev["title"]
-        self.date = rev["added"][:10]
+        self.date = rev["published"][:10]
 
         if "url" in rev["embed"]:
             self.embed = rev["embed"]
