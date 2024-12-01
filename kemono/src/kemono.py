@@ -168,7 +168,13 @@ def save_post(post, path):
     def download_file(post, i):
         link, name = post.files[i]
         print(i + 1, "/", len(post.files), link)
-        savepath = postdir + f"/{i:03}-{name}"
+        savepath = postdir + f"/{i:03}"
+        if name != None:
+            # sometimes name contains a full url
+            name = os.path.basename(name)
+            if len(name) > 64:
+                name = name[-64:]
+            savepath += "-" + os.path.splitext(name)[0]
         if not is_downloadable_link(link):
             print("warn: unhandled link type, saving url")
             savepath += ".txt"
