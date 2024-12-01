@@ -123,7 +123,10 @@ def download(url, path):
         "Accept": "*/*",
         "Referer": origin + "/",
     }
-    res = fetch.request(url, headers=headers)
+    try:
+        res = fetch.request(url, headers=headers)
+    except fetch.requests.exceptions.ChunkedEncodingError as e:
+        res = None
     if res == None:
         print("request failed")
         return False
