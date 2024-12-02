@@ -5,6 +5,7 @@ import urllib
 import json
 
 from bs4 import BeautifulSoup
+from bs4.element import NavigableString
 import strlib
 import fetch
 
@@ -56,44 +57,43 @@ class Post:
         self.description = self.parse_content(bs)
 
     def parse_content(self, bs):
-        string = bs.string
-        if string != None:
-            return string
-
+        if isinstance(bs, NavigableString):
+            return str(bs).strip()
         string = ""
-        pre = bs.find("pre")
-        if pre != None:
-            string += pre.text.strip()
-        ps = bs.find_all(["p", "h3"])
-        if len(ps) == 0:
-            ps = [bs]
-        for p in ps:
-            for e in p:
-                text = str(e.string).strip()
-                match e.name:
-                    case None | "strong" | "span" | "pre" | "em":
-                        string += text
-                    case "i":
-                        string += f"_{text}_"
-                    case "b":
-                        string += f"__{text}__"
-                    case "a":
-                        link = build_full_url(e["href"])
-                        string += f"[{text}]({link})"
-                    case "br":
-                        string += "\n"
-                    case "img":
-                        link = build_full_url(e["src"])
-                        if self.find_file(link) == None:
-                            self.files.append([link, None])
-                        ext = os.path.splitext(link)[1]
-                        index = self.find_file(link)
-                        string += f"[img]({index:03}{ext})"
-                    case _:
-                        print("error: unknown element name")
-                        print(e)
-                        exit(1)
-            string += "\n"
+        for node in bs.contents:
+            pre = ""
+            post = ""
+            match node.name:
+                case "p":
+                    post = "\n"
+                case "strong" | "b":
+                    pre = post = "__"
+                case "em" | "i":
+                    pre = post = "_"
+                case None | "span" | "pre" | "ul" | "blockquote":
+                    pass
+                case "li":
+                    pre = "- "
+                    post = "\n"
+                case "a":
+                    link = build_full_url(node["href"])
+                    pre = "["
+                    post = f"]({link})"
+                case "br":
+                    string += "\n"
+                case "img":
+                    link = build_full_url(node["src"])
+                    if self.find_file(link) == None:
+                        self.files.append([link, None])
+                    ext = os.path.splitext(link)[1]
+                    index = self.find_file(link)
+                    string += f"[img]({index:03}{ext})"
+                case _:
+                    print("error: unknown element", node)
+                    exit(1)
+            content = self.parse_content(node)
+            if len(content) > 0:
+                string += pre + content + post
         return string
 
     def find_file(self, url):
