@@ -68,6 +68,24 @@ class Post:
                     post = "\n"
                 case "strong" | "b":
                     pre = post = "__"
+                case "h1":
+                    pre = "# "
+                    post = "\n"
+                case "h2":
+                    pre = "## "
+                    post = "\n"
+                case "h3":
+                    pre = "### "
+                    post = "\n"
+                case "h4":
+                    pre = "#### "
+                    post = "\n"
+                case "h5":
+                    pre = "##### "
+                    post = "\n"
+                case "h6":
+                    pre = "###### "
+                    post = "\n"
                 case "em" | "i":
                     pre = post = "_"
                 case None | "span" | "pre" | "ul" | "blockquote":
@@ -196,7 +214,7 @@ def save_post(post, path):
 
         i = job_index.fetch_add()
         while i < len(post.files):
-            failed |= download_file(post, i)
+            failed |= not download_file(post, i)
             i = job_index.fetch_add()
 
     workers = []
