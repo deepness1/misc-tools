@@ -51,7 +51,8 @@ class Post:
         for file in rev["attachments"]:
             url = build_full_url(file["path"])
             if self.find_file(url) == None:
-                self.files.append([url, file["name"]])
+                filename = file["name"] if "name" in file else os.path.basename(url)
+                self.files.append([url, filename])
 
         bs = BeautifulSoup(rev["content"], "html.parser")
         self.description = self.parse_content(bs)
