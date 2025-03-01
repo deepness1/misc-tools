@@ -37,7 +37,7 @@ class Post:
         self.title = rev["title"]
         self.date = rev["published"][:10]
 
-        if "url" in rev["embed"]:
+        if "url" in rev["embed"] and rev["embed"]["url"] != None:
             self.embed = rev["embed"]
         else:
             self.embed = None
@@ -98,6 +98,9 @@ class Post:
                     link = build_full_url(node["href"])
                     pre = "["
                     post = f"]({link})"
+                case "iframe":
+                    link = build_full_url(node["src"])
+                    string += f"[iframe]({link})"
                 case "br":
                     string += "\n"
                 case "img":
