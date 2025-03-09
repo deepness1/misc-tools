@@ -27,6 +27,7 @@ def request(url, session=None, **kwargs):
         except (
             requests.exceptions.ConnectTimeout,
             requests.exceptions.ConnectionError,
+            requests.exceptions.ChunkedEncodingError,
         ) as e:
             print(e)
             if not retry():
