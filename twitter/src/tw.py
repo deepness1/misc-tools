@@ -155,14 +155,16 @@ def list_posts(scraper, user_id, post_id_min):
         results = find_key(json, "tweet_results")
         if len(results) == 0:
             break
+        prev_post_len = len(posts)
         for tweet in results:
             post = Post(tweet["result"])
             if post.post_id <= post_id_min:
                 post_id_min_reached = True
                 break
-            posts[post.post_id] = post
+            if not post.post_id in posts:
+                posts[post.post_id] = post
 
-        if post_id_min_reached:
+        if post_id_min_reached or len(posts) == prev_post_len:
             break
 
     return complete_missing_reply_parents(scraper, posts)
