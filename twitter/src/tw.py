@@ -14,7 +14,7 @@ from twitter.util import batch_ids
 from twitter.constants import Operation
 
 import creds
-import fetch
+import curl
 
 import newscraper
 
@@ -192,17 +192,17 @@ def dump_post(post, basedir):
 
     for i in range(len(post.photos)):
         url = post.photos[i]
-        res = fetch.request(url)
+        res = curl.get(url)
         ext = os.path.splitext(urlparse(url).path)[1]
         savepath = postdir + f"/photo-{i:03}{ext}"
-        open(savepath, "wb").write(res.content)
+        open(savepath, "wb").write(res)
 
     for i in range(len(post.videos)):
         url = post.videos[i]
-        res = fetch.request(url)
+        res = curl.get(url)
         ext = os.path.splitext(urlparse(url).path)[1]
         savepath = postdir + f"/video-{i:03}{ext}"
-        open(savepath, "wb").write(res.content)
+        open(savepath, "wb").write(res)
 
 
 def main():
