@@ -10,7 +10,13 @@ def xor(data, key):
 
 
 class Decrypter:
-    encrypt_table = {"rpgmvo": "ogg", "rpgmvm": "m4a", "rpgmvp": "png"}
+    encrypt_table = {
+        "rpgmvo": "ogg",
+        "rpgmvm": "m4a",
+        "rpgmvp": "png",
+        "ogg_": "ogg",
+        "png_": "png",
+    }
 
     def __init__(self, gamedir):
         self.gamedir = gamedir
