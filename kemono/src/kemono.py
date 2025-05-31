@@ -7,11 +7,15 @@ import json
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 import strlib
-import fetch
+import curl
 
 import atomic
 
 origin = "https://kemono.su"
+
+
+def get(url):
+    return curl.get(url)
 
 
 def build_full_url(path):
@@ -26,8 +30,7 @@ class Post:
         self.pid = pid
 
         url = f"{origin}/api/v1/{site}/user/{uid}/post/{pid}"
-        res = fetch.request(url)
-        root = json.loads(res.text)
+        root = json.loads(get(url))
         # TODO: support multiple revisions
         # props = root["props"]
         # for num, r in props["revisions"]:
@@ -131,8 +134,7 @@ def list_post_urls(site, uid):
 
     o = 0
     while True:
-        res = fetch.request(url + f"?o={o}")
-        arr = json.loads(res.text)
+        arr = json.loads(get(url + f"?o={o}"))
         if len(arr) == 0:
             return result
         result += [post["id"] for post in arr]
@@ -140,19 +142,18 @@ def list_post_urls(site, uid):
 
 
 def download(url, path):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Accept": "*/*",
-        "Referer": origin + "/",
-    }
-    try:
-        res = fetch.request(url, headers=headers)
-    except fetch.requests.exceptions.ChunkedEncodingError as e:
-        res = None
+    res = curl.get(
+        url,
+        header=[
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Accept: */*",
+            f"Referer: {origin}/",
+        ],
+    )
     if res == None:
         print("request failed: ", url)
         return False
-    open(path, "wb").write(res.content)
+    open(path, "wb").write(res)
     return True
 
 
