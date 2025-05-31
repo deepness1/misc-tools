@@ -2,6 +2,7 @@ import os
 import subprocess
 import shutil
 
+import urllib3
 import pixivpy3 as ppy
 
 import retry
@@ -73,6 +74,16 @@ def dump_ugoira_as_movie(apis, work, basedir):
     return True
 
 
+def aapi_download(apis, url, basedir, savename):
+    while True:
+        try:
+            apis.aapi.download(url, "", basedir, savename)
+            break
+        except urllib3.exceptions.IncompleteRead:
+            print("failed to download image, retrying")
+            sleep(1)
+
+
 def dump_work(apis, work, basedir):
     if work.type == "ugoira":
         return dump_ugoira_as_movie(apis, work, basedir)
@@ -80,12 +91,12 @@ def dump_work(apis, work, basedir):
     if work.page_count == 1:
         url = work.meta_single_page.original_image_url
         savename = "001" + os.path.splitext(url)[1]
-        apis.aapi.download(url, "", basedir, savename)
+        aapi_download(apis, url, basedir, savename)
     else:
         page = 1
         for img in work.meta_pages:
             url = img.image_urls.original
             savename = f"{page:03d}" + os.path.splitext(url)[1]
-            apis.aapi.download(url, "", basedir, savename)
+            aapi_download(apis, url, basedir, savename)
             page += 1
     return True
