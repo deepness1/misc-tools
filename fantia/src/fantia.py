@@ -6,7 +6,7 @@ import calendar
 import json
 
 from bs4 import BeautifulSoup
-import fetch
+import curl
 import strlib
 import creds
 
@@ -16,20 +16,27 @@ domain = "fantia.jp"
 origin = "https://" + domain
 
 
-class Session:
-    def __init__(self):
-        self.session = fetch.Session()
-        self.session.headers = {
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "ja,en-US;q=0.9,en;q=0.8",
-            "origin": origin,
-            "referer": origin,
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36",
-        }
-        self.session.cookies.set("_session_id", creds.fantia_session_id, domain=domain)
+def get_full(url, **kwargs):
+    return curl.get_full(
+        url,
+        header=[
+            "accept: application/json, text/plain, */*",
+            "accept-language: ja,en-US;q=0.9,en;q=0.8",
+            f"origin: {origin}",
+            f"referer: {origin}",
+            "user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+        ]
+        + kwargs.get("header", []),
+        cookie=[
+            "_session_id={}".format(creds.fantia_session_id),
+            "_f_v_k_1={}".format(creds.fantia_fvk1),
+        ],
+    )
 
-    def request(self, url, **kwargs):
-        return fetch.request(url, self.session, **kwargs)
+
+def get(url, **kwargs):
+    headers, contents = get_full(url, **kwargs)
+    return contents
 
 
 class PhotoGalleryContent:
@@ -37,17 +44,17 @@ class PhotoGalleryContent:
         self.title = title
         self.photos = photos
 
-    def download(self, session, postdir):
+    def download(self, postdir):
         contentdir = os.path.join(postdir, self.title)
         os.makedirs(contentdir, exist_ok=True)
         for i, url in enumerate(self.photos):
-            url_header = session.session.head(url, allow_redirects=True)
-            mimetype = url_header.headers["Content-Type"]
+            headers, contents = get_full(url, **kwargs)
+            mimetype = headers["content-type"]
             ext = mime.guess_extension(mimetype, url)
             filename = f"{i:03}{ext}"
             path = os.path.join(contentdir, filename)
             if not os.path.exists(path):
-                open(path, "wb").write(session.request(url).content)
+                open(path, "wb").write(contents)
 
 
 class FileContent:
@@ -55,10 +62,10 @@ class FileContent:
         self.filename = filename
         self.url = url
 
-    def download(self, session, postdir):
+    def download(self, postdir):
         path = os.path.join(postdir, self.filename)
         if not os.path.exists(path):
-            open(path, "wb").write(session.request(self.url).content)
+            open(path, "wb").write(get(self.url))
 
 
 class BlogContent:
@@ -96,7 +103,7 @@ class BlogContent:
         path = os.path.join(self.postdir, f"{self.file_count:03}" + ext)
         self.file_count += 1
         if not os.path.exists(path):
-            open(path, "wb").write(self.session.request(url).content)
+            open(path, "wb").write(get(url))
 
     def handle_insert(self, value):
         if isinstance(value, str):
@@ -132,9 +139,8 @@ class BlogContent:
                 for attr, flag in value.items():
                     self.handle_attr(attr, flag)
 
-    def download(self, session, postdir):
+    def download(self, postdir):
         info_path = os.path.join(postdir, self.title + ".txt")
-        self.session = session
         self.postdir = postdir
         self.info = open(info_path, "wt")
         self.file_count = 1
@@ -152,8 +158,8 @@ class TextContent:
         self.title = title
         self.comment = comment
 
-    def download(self, session, postdir):
-        info_path = os.path.join(postdir, self.title.replace('/', ',') + ".txt")
+    def download(self, postdir):
+        info_path = os.path.join(postdir, self.title.replace("/", ",") + ".txt")
         open(info_path, "wt").write(self.comment)
 
 
@@ -181,14 +187,10 @@ def parse_content(content):
             exit(1)
 
 
-def get_csrf_token(session, post_id):
-    r = session.request(f"https://fantia.jp/posts/{post_id}")
-    if r.status_code != 200:
-        print(r)
-        raise Exception("missing post")
-
-    bs = BeautifulSoup(r.text, "html.parser")
-
+def get_csrf_token(post_id):
+    r = get(f"https://fantia.jp/posts/{post_id}")
+    r = r.decode("utf-8")
+    bs = BeautifulSoup(r, "html.parser")
     return bs.select_one('meta[name="csrf-token"]')["content"]
 
 
@@ -202,18 +204,17 @@ def posted_at_to_date(posted_at):
 
 class Post:
     def __init__(self, post_id):
-        session = Session()
         self.id = post_id
 
-        response = session.request(
-            "https://fantia.jp/api/v1/posts/" + self.id,
-            headers={
-                "X-CSRF-Token": get_csrf_token(session, post_id),
-                "X-Requested-With": "XMLHttpRequest",
-            },
+        response = get(
+            f"https://fantia.jp/api/v1/posts/{post_id}",
+            header=[
+                "X-CSRF-Token: {}".format(get_csrf_token(post_id)),
+                "X-Requested-With: XMLHttpRequest",
+            ],
         )
 
-        post = json.loads(response.text)["post"]
+        post = json.loads(response.decode('utf-8'))["post"]
 
         self.title = post["title"]
         self.date = posted_at_to_date(post["posted_at"])
@@ -229,12 +230,11 @@ class Post:
 
 
 def list_posts(fanclub):
-    session = Session()
     posts = []
     page = 1
     while True:
-        res = session.request(f"{origin}/fanclubs/{fanclub}/posts?page={page}")
-        bs = BeautifulSoup(res.text, "html.parser")
+        res = get(f"{origin}/fanclubs/{fanclub}/posts?page={page}")
+        bs = BeautifulSoup(res.decode("utf-8"), "html.parser")
         posts_bs = bs.select("div.post")
         if not posts_bs:
             return posts
@@ -251,7 +251,6 @@ def post_to_dirname(post):
 
 
 def dump_post(post, basedir):
-    session = Session()
     dirname = post_to_dirname(post)
     postdir = os.path.join(basedir, dirname)
     os.makedirs(postdir, exist_ok=True)
@@ -260,7 +259,7 @@ def dump_post(post, basedir):
         open(filepath, "wt").write(post.description)
 
     for content in post.contents:
-        content.download(session, postdir)
+        content.download(postdir)
 
 
 def main():
