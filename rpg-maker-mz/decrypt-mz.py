@@ -1,0 +1,1 @@
+../rpg-maker-mv/decrypt-mv.py

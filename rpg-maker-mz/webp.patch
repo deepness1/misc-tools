@@ -1,0 +1,28 @@
+diff --git a/index.html b/index.html
+index ca14f34..2787a88 100644
+--- a/index.html
++++ b/index.html
+@@ -5,8 +5,8 @@
+         <meta name="apple-mobile-web-app-capable" content="yes">
+         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+         <meta name="viewport" content="user-scalable=no">
+-        <link rel="icon" href="icon/icon.png" type="image/png">
+-        <link rel="apple-touch-icon" href="icon/icon.png">
++        <link rel="icon" href="icon/icon.webp" type="image/webp">
++        <link rel="apple-touch-icon" href="icon/icon.webp">
+         <link rel="stylesheet" type="text/css" href="css/game.css">
+         <title>title</title>
+     </head>
+diff --git a/js/rmmz_managers.js b/js/rmmz_managers.js
+index 74e214c..e5033d0 100644
+--- a/js/rmmz_managers.js
++++ b/js/rmmz_managers.js
+@@ -914,7 +914,7 @@ ImageManager.loadTitle2 = function(filename) {
+ 
+ ImageManager.loadBitmap = function(folder, filename) {
+     if (filename) {
+-        const url = folder + Utils.encodeURI(filename) + ".png";
++        const url = folder + Utils.encodeURI(filename) + ".webp";
+         return this.loadBitmapFromUrl(url);
+     } else {
+         return this._emptyBitmap;
