@@ -3,37 +3,32 @@ import os
 import json
 import urllib
 
-import fetch
+import curl
 import creds
 
 origin = "https://api.fanbox.cc"
 
 
-class Session:
-    def __init__(self):
-        self.session = fetch.Session()
-        self.session.headers = {
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "ja,en-US;q=0.9,en;q=0.8",
-            "origin": "https://www.fanbox.cc",
-            "referer": "https://www.fanbox.cc/",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36",
-        }
-        self.session.cookies.set(
-            "FANBOXSESSID", creds.fanbox_session_id, domain=".fanbox.cc"
-        )
-
-    def request(self, url, **kwargs):
-        return fetch.request(url, self.session, **kwargs)
+def get(url):
+    return curl.get(
+        url,
+        header=[
+            "accept: application/json, text/plain, */*",
+            "accept-language: ja,en-US;q=0.9,en;q=0.8",
+            "origin: https://www.fanbox.cc",
+            "referer: https://www.fanbox.cc/",
+            "user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+        ],
+        cookie=[
+            "FANBOXSESSID={}".format(creds.fanbox_session_id),
+            "cf_clearance={}".format(creds.fanbox_cf_clearance),
+        ],
+    )
 
 
 class Post:
     def __init__(self, post_id):
-        self.session = Session()
-
-        url = origin + "/post.info"
-        payload = {"postId": post_id}
-        info = self.download(url, params=payload).json()
+        info = json.loads(get(f"{origin}/post.info?postId={post_id}"))
         data = info["body"]
 
         self.post_id = post_id
@@ -86,37 +81,12 @@ class Post:
                     name += "." + f["extension"]
                 self.files.append({"name": name, "url": f["url"]})
 
-    def download(self, url, **kwargs):
-        return self.session.request(url, **kwargs)
-
 
 def list_posts(creator_id):
-    session = Session()
-
-    def get_paginate_creator():
-        nonlocal session
-        url = origin + "/post.paginateCreator"
-        payload = {"creatorId": creator_id}
-
-        return session.request(url, params=payload).json()
-
-    def query_parse(url):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
-        for k in query:
-            query[k] = query[k][0]
-        return query
-
-    def get_list_creator(**kwargs) -> dict:
-        url = origin + "/post.listCreator"
-        payload = kwargs
-        return session.request(url, params=payload).json()
-
-    paginate = get_paginate_creator()
-
     posts = []
-    for i in range(len(paginate["body"])):
-        param = query_parse(paginate["body"][i])
-        for p in get_list_creator(**param)["body"]:
+    pages_url = f"{origin}/post.paginateCreator?creatorId={creator_id}"
+    for url in json.loads(get(pages_url))["body"]:
+        for p in json.loads(get(url))["body"]:
             posts.append(p["id"])
 
     return posts
@@ -137,14 +107,14 @@ def dump_post(post, basedir):
         filepath = os.path.join(path, f"{i:03}{ext}")
         if os.path.exists(filepath):
             continue
-        file = post.download(url).content
+        file = get(url)
         open(filepath, "wb").write(file)
 
     for file in post.files:
         filepath = os.path.join(path, file["name"])
         if os.path.exists(filepath):
             continue
-        file = post.download(file["url"]).content
+        file = get(file["url"])
         open(filepath, "wb").write(file)
 
 
