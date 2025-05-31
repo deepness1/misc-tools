@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-import fetch
+import curl
 
 
 class Work:
@@ -26,13 +26,11 @@ class Work:
 
         while work in ["work", "announce"]:
             url = f"https://www.dlsite.com/{category}/{work}/=/product_id/{pid}.html"
-            res = fetch.request(url)
+            res = curl.get(url)
             if res != None:
                 break
-        if res == None:
-            raise Exception("missing work")
 
-        bs = BeautifulSoup(res.text, "html.parser")
+        bs = BeautifulSoup(res.decode('utf-8'), "html.parser")
         self.title = bs.body.find("h1").string
         self.date = Work.convert_date(
             bs.body.find("table", id="work_outline").tr.td.a.string
