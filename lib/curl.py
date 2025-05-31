@@ -8,7 +8,7 @@ import pycurl
 # header: list
 # cookie: list
 # version: 1|2|3
-def get(url, **kwargs):
+def get_full(url, **kwargs):
     # print(f"curl get {url} {kwargs}")
     retry_count = 0
 
@@ -23,12 +23,29 @@ def get(url, **kwargs):
         time.sleep(5)
         return True
 
+    headers = {}
+
+    def header_callback(line):
+        nonlocal headers
+
+        line = line.decode("iso-8859-1")
+        if ":" not in line:
+            return
+
+        name, value = line.split(":", 1)
+
+        name = name.strip().lower()
+        value = value.strip()
+        headers[name] = value
+
     while True:
         buf = BytesIO()
         curl = pycurl.Curl()
         curl.setopt(curl.URL, url)
         curl.setopt(curl.WRITEDATA, buf)
         curl.setopt(curl.CAINFO, certifi.where())
+        curl.setopt(curl.HEADERFUNCTION, header_callback)
+        curl.setopt(curl.FOLLOWLOCATION, True)
         if "version" in kwargs:
             match kwargs["version"]:
                 case 1:
@@ -59,4 +76,9 @@ def get(url, **kwargs):
                 return None
             continue
 
-        return buf.getvalue()
+        return [headers, buf.getvalue()]
+
+
+def get(url, **kwargs):
+    headers, contents = get_full(url, **kwargs)
+    return contents
