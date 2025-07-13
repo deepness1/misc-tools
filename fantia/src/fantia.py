@@ -48,7 +48,7 @@ class PhotoGalleryContent:
         contentdir = os.path.join(postdir, self.title)
         os.makedirs(contentdir, exist_ok=True)
         for i, url in enumerate(self.photos):
-            headers, contents = get_full(url, **kwargs)
+            headers, contents = get_full(url)
             mimetype = headers["content-type"]
             ext = mime.guess_extension(mimetype, url)
             filename = f"{i:03}{ext}"
@@ -214,7 +214,7 @@ class Post:
             ],
         )
 
-        post = json.loads(response.decode('utf-8'))["post"]
+        post = json.loads(response.decode("utf-8"))["post"]
 
         self.title = post["title"]
         self.date = posted_at_to_date(post["posted_at"])
