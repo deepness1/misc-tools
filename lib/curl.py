@@ -46,14 +46,15 @@ def get_full(url, **kwargs):
         curl.setopt(curl.CAINFO, certifi.where())
         curl.setopt(curl.HEADERFUNCTION, header_callback)
         curl.setopt(curl.FOLLOWLOCATION, True)
+        # curl.setopt(curl.VERBOSE, 1)
         if "version" in kwargs:
             match kwargs["version"]:
                 case 1:
-                    curl.setopt(curl.HTTP_VERSION, curl.HTTP_VERSION_1_1)
+                    curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_1_1)
                 case 2:
-                    curl.setopt(curl.HTTP_VERSION, curl.HTTP_VERSION_2_0)
+                    curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_2_0)
                 case 3:
-                    curl.setopt(curl.HTTP_VERSION, curl.HTTP_VERSION_3_0)
+                    curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_3_0)
                 case _:
                     print("invalid http version", kwargs["version"])
         if "header" in kwargs:
