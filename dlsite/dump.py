@@ -2,17 +2,14 @@ import sys
 import os
 
 import strlib
-import fetch
+import curl
 
 import dlsite
 
 
 def download(url, path):
-    res = fetch.request(url)
-    if res == None:
-        print("request failed")
-        return False
-    open(path, "wb").write(res.content)
+    res = curl.get(url, header=["user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0"])
+    open(path, "wb").write(res)
     return True
 
 
