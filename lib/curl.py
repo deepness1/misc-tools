@@ -64,15 +64,20 @@ def get_full(url, **kwargs):
             for c in kwargs["cookie"]:
                 s += c + ";"
             curl.setopt(curl.COOKIE, s)
-        curl.perform()
+        try:
+            curl.perform()
+            code = curl.getinfo(curl.RESPONSE_CODE)
+        except pycurl.error as e:
+            print(e)
+            code = -1
 
-        code = curl.getinfo(curl.RESPONSE_CODE)
         if code != 200:
             if code == 429:
                 print(f"too many requests for {url}")
                 time.sleep(30)
                 continue
 
+            print("code={} headers={} contents={}".format(code, headers, buf.getvalue()))
             if not retry():
                 return None
             continue
