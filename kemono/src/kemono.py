@@ -3,6 +3,7 @@ import sys
 import threading
 import urllib
 import json
+import gzip
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
@@ -14,8 +15,20 @@ import atomic
 origin = "https://kemono.su"
 
 
-def get(url):
-    return curl.get(url)
+def get_json(url):
+    ret = curl.get(url, header=["Accept: text/css"])
+    try:
+        txt = json.loads(ret)
+    except UnicodeDecodeError:
+        print("not string")
+        try:
+            ret = gzip.decompress(ret)
+            txt = json.loads(ret)
+        except:
+            print("error")
+            open("/tmp/dump.bin", "wb").write(ret)
+            exit(1)
+    return txt
 
 
 def build_full_url(path):
@@ -30,7 +43,7 @@ class Post:
         self.pid = pid
 
         url = f"{origin}/api/v1/{site}/user/{uid}/post/{pid}"
-        root = json.loads(get(url))
+        root = get_json(url)
         # TODO: support multiple revisions
         # props = root["props"]
         # for num, r in props["revisions"]:
