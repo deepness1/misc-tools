@@ -129,19 +129,20 @@ class Post:
 
 
 def list_post_urls(site, uid):
-    url = f"{origin}/api/v1/{site}/user/{uid}"
+    url = f"{origin}/api/v1/{site}/user/{uid}/posts"
     result = []
 
     o = 0
     while True:
-        arr = json.loads(get(url + f"?o={o}"))
-        if len(arr) == 0:
-            return result
+        arr = get_json(url + f"?o={o}")
         result += [post["id"] for post in arr]
+        if len(arr) != 50: # TODO: not works if (total works) % 50 == 0
+            return result
         o += 50
 
 
 def download(url, path):
+    print(f"downloading {path}")
     res = curl.get(
         url,
         header=[
@@ -149,6 +150,7 @@ def download(url, path):
             "Accept: */*",
             f"Referer: {origin}/",
         ],
+        version=20,
     )
     if res == None:
         print("request failed: ", url)
@@ -223,7 +225,7 @@ def save_post(post, path):
             i = job_index.fetch_add()
 
     workers = []
-    for i in range(4):
+    for i in range(2):
         thread = threading.Thread(target=worker_main)
         thread.start()
         workers.append(thread)
