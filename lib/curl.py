@@ -5,6 +5,14 @@ from io import BytesIO
 import pycurl
 
 
+def contents_to_string(c):
+    try:
+        s = c.decode("utf-8")
+        return s
+    except:
+        return "(binary)"
+
+
 # header: list
 # cookie: list
 # version: 1|2|3
@@ -77,7 +85,11 @@ def get_full(url, **kwargs):
                 time.sleep(30)
                 continue
 
-            print("code={} headers={} contents={}".format(code, headers, buf.getvalue()))
+            print(
+                "code={} headers={} contents={}".format(
+                    code, headers, contents_to_string(buf.getvalue())
+                )
+            )
             if not retry():
                 return None
             continue
