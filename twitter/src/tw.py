@@ -157,7 +157,15 @@ def list_posts(scraper, user_id, post_id_min):
             break
         prev_post_len = len(posts)
         for tweet in results:
-            post = Post(tweet["result"])
+            result = tweet["result"]
+            match result["__typename"]:
+                case "Tweet":
+                    post = Post(result)
+                case "TweetWithVisibilityResults":
+                    post = Post(result["tweet"])
+                case _:
+                    print("unknown typename", result["__typename"])
+                    exit(1)
             if post.post_id <= post_id_min:
                 post_id_min_reached = True
                 break
