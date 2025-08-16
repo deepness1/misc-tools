@@ -57,11 +57,13 @@ def get_full(url, **kwargs):
         # curl.setopt(curl.VERBOSE, 1)
         if "version" in kwargs:
             match kwargs["version"]:
-                case 1:
+                case 10:
+                    curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_1_0)
+                case 11:
                     curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_1_1)
-                case 2:
+                case 20:
                     curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_2_0)
-                case 3:
+                case 30:
                     curl.setopt(curl.HTTP_VERSION, curl.CURL_HTTP_VERSION_3_0)
                 case _:
                     print("invalid http version", kwargs["version"])
