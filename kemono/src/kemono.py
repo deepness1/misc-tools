@@ -12,7 +12,7 @@ import curl
 
 import atomic
 
-origin = "https://kemono.su"
+origin = "https://kemono.cr"
 
 
 def get_json(url):
@@ -179,7 +179,7 @@ def post_to_dirname(post):
 
 def is_downloadable_link(link):
     hostname = urllib.parse.urlparse(link).hostname
-    return hostname.endswith("kemono.su")
+    return hostname.endswith("kemono.cr")
 
 
 def save_post(post, path):
