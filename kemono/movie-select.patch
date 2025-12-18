@@ -1,0 +1,165 @@
+diff --git a/kemono/src/kemono.py b/kemono/src/kemono.py
+index 09f7aeb..a8b541e 100644
+--- a/kemono/src/kemono.py
++++ b/kemono/src/kemono.py
+@@ -207,6 +207,10 @@ def save_post(post, path):
+         savepath += ext
+         if os.path.exists(savepath):
+             return True
++        if ext == ".mp4":
++            print(f"path={savepath} url={link}: ", end='')
++            if input() == 'n':
++                return True
+         return download(link, savepath)
+ 
+     job_index = atomic.AtomicInt()
+@@ -220,14 +224,14 @@ def save_post(post, path):
+         while i < len(post.files):
+             failed |= not download_file(post, i)
+             i = job_index.fetch_add()
+-
+-    workers = []
+-    for i in range(4):
+-        thread = threading.Thread(target=worker_main)
+-        thread.start()
+-        workers.append(thread)
+-    for w in workers:
+-        w.join()
++    worker_main()
++    #workers = []
++    #for i in range(4):
++    #    thread = threading.Thread(target=worker_main)
++    #    thread.start()
++    #    workers.append(thread)
++    #for w in workers:
++    #    w.join()
+ 
+     return not failed
+ 
+diff --git a/pixiv/src/illust.py b/pixiv/src/illust.py
+index 2cc56cd..fb4f424 100644
+--- a/pixiv/src/illust.py
++++ b/pixiv/src/illust.py
+@@ -2,6 +2,7 @@ import os
+ import subprocess
+ import shutil
+ 
++import urllib3
+ import pixivpy3 as ppy
+ 
+ import retry
+@@ -73,6 +74,16 @@ def dump_ugoira_as_movie(apis, work, basedir):
+     return True
+ 
+ 
++def aapi_download(apis, url, basedir, savename):
++    while True:
++        try:
++            apis.aapi.download(url, "", basedir, savename)
++            break
++        except urllib3.exceptions.IncompleteRead:
++            print("failed to download image, retrying")
++            sleep(1)
++
++
+ def dump_work(apis, work, basedir):
+     if work.type == "ugoira":
+         return dump_ugoira_as_movie(apis, work, basedir)
+@@ -80,12 +91,12 @@ def dump_work(apis, work, basedir):
+     if work.page_count == 1:
+         url = work.meta_single_page.original_image_url
+         savename = "001" + os.path.splitext(url)[1]
+-        apis.aapi.download(url, "", basedir, savename)
++        aapi_download(apis, url, basedir, savename)
+     else:
+         page = 1
+         for img in work.meta_pages:
+             url = img.image_urls.original
+             savename = f"{page:03d}" + os.path.splitext(url)[1]
+-            apis.aapi.download(url, "", basedir, savename)
++            aapi_download(apis, url, basedir, savename)
+             page += 1
+     return True
+diff --git a/rpg-maker-mv/decrypt-mv.py b/rpg-maker-mv/decrypt-mv.py
+index 38350c7..6a47229 100644
+--- a/rpg-maker-mv/decrypt-mv.py
++++ b/rpg-maker-mv/decrypt-mv.py
+@@ -10,7 +10,13 @@ def xor(data, key):
+ 
+ 
+ class Decrypter:
+-    encrypt_table = {"rpgmvo": "ogg", "rpgmvm": "m4a", "rpgmvp": "png"}
++    encrypt_table = {
++        "rpgmvo": "ogg",
++        "rpgmvm": "m4a",
++        "rpgmvp": "png",
++        "ogg_": "ogg",
++        "png_": "png",
++    }
+ 
+     def __init__(self, gamedir):
+         self.gamedir = gamedir
+diff --git a/rpg-maker-mz/decrypt.py b/rpg-maker-mz/decrypt.py
+deleted file mode 100644
+index ff48d8c..0000000
+--- a/rpg-maker-mz/decrypt.py
++++ /dev/null
+@@ -1,58 +0,0 @@
+-import os
+-import sys
+-import json
+-
+-magic = bytes(
+-    [
+-        0x52, # R
+-        0x50, # P
+-        0x47, # G
+-        0x4D, # M
+-        0x56, # V
+-        0x00,
+-        0x00,
+-        0x00,
+-        0x00,
+-        0x03,
+-        0x01,
+-        0x00,
+-        0x00,
+-        0x00,
+-        0x00,
+-        0x00,
+-    ]
+-)
+-
+-def decrypt(root):
+-    for cwd, dirs, files in os.walk(root):
+-        for file in files:
+-            if file[-1] != "_":
+-                continue
+-            path = cwd + "/" + file
+-            print(path)
+-            enc = open(path, "rb").read()
+-            if enc[:len(magic)] != magic:
+-                continue
+-            body = bytearray(enc[len(magic):])
+-            for i in range(len(enc_key)):
+-                body[i] ^= enc_key[i]
+-            open(path[:-1], "wb").write(body)
+-            os.remove(path)
+-
+-basedir = sys.argv[1]
+-system = json.load(open(f"{basedir}/data/System.json"))
+-image_enc = system["hasEncryptedImages"]
+-audio_enc = system["hasEncryptedAudio"]
+-enc_key = bytes.fromhex(system["encryptionKey"])
+-
+-#if image_enc:
+-#    decrypt(f"{basedir}/img")
+-#
+-#if audio_enc:
+-#    decrypt(f"{basedir}/audio")
+-
+-system["hasEncryptedImages"] = False
+-system["hasEncryptedAudio"] = False
+-json.dump(system, open(f"{basedir}/data/System.json", "w"))
+-
+-print("done")

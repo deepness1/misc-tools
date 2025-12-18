@@ -196,7 +196,8 @@ def save_post(post, path):
             open(postdir + "/info.txt", mode="w").write(text)
     if post.embed != None:
         url = post.embed["url"]
-        subject = post.embed["subject"].replace("/", "-")
+        subject = post.embed["subject"]
+        subject = subject.replace("/", "-") if subject != None else "embed"
         description = post.embed["description"]
         text = f"[{description}]({url})"
         open(postdir + f"/{subject}.txt", mode="w").write(text)
