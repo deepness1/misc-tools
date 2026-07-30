@@ -29,7 +29,7 @@ def get(url):
 class Post:
     def __init__(self, post_id):
         info = json.loads(get(f"{origin}/post.info?postId={post_id}"))
-        data = info["body"]
+        data = info["body"]["post"]
 
         self.post_id = post_id
         self.title = data["title"]
@@ -85,8 +85,8 @@ class Post:
 def list_posts(creator_id):
     posts = []
     pages_url = f"{origin}/post.paginateCreator?creatorId={creator_id}"
-    for url in json.loads(get(pages_url))["body"]:
-        for p in json.loads(get(url))["body"]:
+    for url in json.loads(get(pages_url))["body"]["pageUrls"]:
+        for p in json.loads(get(url))["body"]["posts"]:
             posts.append(p["id"])
 
     return posts
